@@ -3,79 +3,48 @@ using Microsoft.Bot.Connector.DirectLine;
 
 namespace BotSpec.Assertions
 {
-    public class MessageAssertions : IMessageAssertions
+    public class MessageAssertions : ActivityAssertions, IMessageAssertions
     {
         private readonly IMessageActivity _message;
         private readonly BotSpecSettings _settings;
 
-        public MessageAssertions(IMessageActivity message, BotSpecSettings settings)
+        public MessageAssertions(IActivity activity, BotSpecSettings settings) : base(activity, settings)
         {
+            var message = activity.AsMessageActivity();
+            if (message == null)
+                throw new BotSpecException($"Could not convert activity to a message. This activity is a {activity.Type}.");
             _message = message;
             _settings = settings;
         }
 
-        public IMessageAssertions TextMatches(string shouldMatch)
+        public IMessageAssertions TextIs(string shouldMatch)
         {
             if (!StringMatching.Matches(_message.Text, shouldMatch))
-                throw new BotSpecException($"Message text did not match expected text."
-                + " Text: \"{_message.Text}\" Expected: \"{shouldMatch}\"");
+                ThrowMatchException(nameof(_message.Text), shouldMatch, _message.Text);
 
             return this;
         }
 
-        public IMessageAssertions TextMatchesPattern(string pattern)
+        public IMessageAssertions TextLike(string pattern)
         {
             if (!StringMatching.MatchesPattern(_message.Text, pattern))
-                throw new BotSpecException($"Message text did not match pattern."
-                + " Text: \"{_message.Text}\" Pattern: \"{pattern}\"");
+                ThrowPatternException(nameof(_message.Text), pattern, _message.Text);
 
             return this;
         }
 
-        public IMessageAssertions TextMatchesPatternWithGroups(string pattern, out IEnumerable<string> matches)
-        {
-            matches = null;
-
-            var matchWithGroups = StringMatching.MatchesPatternWithGroups(_message.Text, pattern);
-
-            if (!matchWithGroups.doesMatch)
-                throw new BotSpecException($"Message text did not match pattern."
-                + " Text: \"{_message.Text}\" Pattern: \"{pattern}\"");
-
-            matches = matchWithGroups.matches;
-
-            return this;
-        }
-
-        public IMessageAssertions SummaryMatches(string shouldMatch)
+        public IMessageAssertions SummaryIs(string shouldMatch)
         {
             if (!StringMatching.Matches(_message.Summary, shouldMatch))
-                throw new BotSpecException($"Message summary did not match expected text."
-                + " Summary: \"{_message.Summary}\" Expected: \"{shouldMatch}\"");
+                ThrowMatchException(nameof(_message.Summary), shouldMatch, _message.Summary);
 
             return this;
         }
 
-        public IMessageAssertions SummaryMatchesPattern(string pattern)
+        public IMessageAssertions SummaryLike(string pattern)
         {
             if (!StringMatching.MatchesPattern(_message.Summary, pattern))
-                throw new BotSpecException($"Message summary did not match pattern."
-                + " Summary: \"{_message.Summary}\" Pattern: \"{pattern}\"");
-
-            return this;
-        }
-
-        public IMessageAssertions SummaryMatchesPatternWithGroups(string pattern, out IEnumerable<string> matches)
-        {
-            matches = null;
-
-            var matchWithGroups = StringMatching.MatchesPatternWithGroups(_message.Summary, pattern);
-
-            if (!matchWithGroups.doesMatch)
-                throw new BotSpecException($"Message summary did not match pattern."
-                + " Summary: \"{_message}\" Pattern: \"{pattern}\"");
-
-            matches = matchWithGroups.matches;
+                ThrowPatternException(nameof(_message.Summary), pattern, _message.Summary);
 
             return this;
         }

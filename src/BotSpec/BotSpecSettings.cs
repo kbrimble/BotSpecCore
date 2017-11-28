@@ -7,5 +7,5 @@ namespace BotSpec
         public BotClientSettings BotClientSettings { get; set; } = new BotClientSettings();
 
         public static BotSpecSettings DefaultSettings = new BotSpecSettings();
-    }
+    }   
 }
